@@ -76,7 +76,18 @@ public class ExempleJDBC {
     // 3. Parcourir le ResultSet avec while (rs.next()) et, pour chaque ligne,
     // ajouter à `lignes`
     // la chaîne : rs.getString("code") + " - " + rs.getString("nom_vernaculaire").
+    try (Statement st = connexion.createStatement();
+        ResultSet rs = st.executeQuery("SELECT code, nom_vernaculaire FROM taxon")) {
+
+      while (rs.next()) {
+        lignes.add(rs.getString("code") + " - " + rs.getString("nom_vernaculaire"));
+      }
+    }
 
     return lignes;
   }
 }
+// ici le code va se connecte d'abord à la base de données temporaire en mémoire
+// il y crée une table qu'il remplit avec quatre espèces de chauves-souris
+// avant d'exécuter une requête SQL pour récupérer ces données
+// les mettre en forme, et les afficher à l'écran.
