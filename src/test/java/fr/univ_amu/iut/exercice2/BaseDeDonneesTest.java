@@ -63,7 +63,8 @@ class BaseDeDonneesTest {
     try (Connection connexion = source.getConnection();
         Statement st = connexion.createStatement()) {
       // observation.code_taxon est une clé étrangère vers taxon(code).
-      // 'ZZZZZZ' n'existe pas : l'insertion doit être refusée SI les clés étrangères sont activées.
+      // 'ZZZZZZ' n'existe pas : l'insertion doit être refusée SI les clés étrangères
+      // sont activées.
       assertThatThrownBy(
               () ->
                   st.execute(
