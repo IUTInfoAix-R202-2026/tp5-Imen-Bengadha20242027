@@ -34,6 +34,7 @@ public class DetailSiteDao {
     List<PointEcoute> points = new ArrayList<>();
     String sql =
         "SELECT numero_carre, code, descriptif FROM point_ecoute WHERE numero_carre = ? ORDER BY code";
+
     try (Connection connexion = source.getConnection();
         PreparedStatement ps = connexion.prepareStatement(sql)) {
       ps.setString(1, numeroCarre);
@@ -57,20 +58,27 @@ public class DetailSiteDao {
   public List<String> findEspecesObserveesSurLeSite(String numeroCarre) {
     List<String> especes = new ArrayList<>();
 
-    // TODO exercice 5 : écrire la jointure entre observation, passage et taxon.
-    //
-    // Objectif : pour un site donné, lister les noms vernaculaires des espèces détectées,
-    // sans doublon, triés.
-    //
-    //   SELECT DISTINCT t.nom_vernaculaire
-    //   FROM observation o
-    //   JOIN passage p ON o.passage_id = p.id
-    //   JOIN taxon   t ON o.code_taxon = t.code
-    //   WHERE p.numero_carre = ?
-    //   ORDER BY t.nom_vernaculaire
-    //
-    // Préparer la requête, positionner le paramètre, parcourir le ResultSet et ajouter chaque
-    // nom à `especes`. Envelopper toute SQLException dans une DataAccessException.
+    String sql =
+        """
+        SELECT DISTINCT t.nom_vernaculaire
+        FROM observation o
+        JOIN passage p ON o.passage_id=p.id
+        JOIN taxon t ON o.code_taxon=t.code
+        WHERE p.numero_carre=?
+        ORDER BY t.nom_vernaculaire
+        """;
+
+    try (Connection connexion = source.getConnection();
+        PreparedStatement ps = connexion.prepareStatement(sql)) {
+      ps.setString(1, numeroCarre);
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          especes.add(rs.getString("nom_vernaculaire"));
+        }
+      }
+    } catch (SQLException e) {
+      throw new DataAccessException("Impossible de lire " + numeroCarre, e);
+    }
 
     return especes;
   }
