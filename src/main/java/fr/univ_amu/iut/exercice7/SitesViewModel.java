@@ -3,23 +3,14 @@ package fr.univ_amu.iut.exercice7;
 import com.google.inject.Inject;
 import fr.univ_amu.iut.exercice4.Site;
 import fr.univ_amu.iut.exercice4.SiteDao;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-/**
- * ViewModel du capstone : la liste des sites VigieChiro, persistée en base.
- *
- * <p>C'est le point de jonction des TP4 et TP5 : un ViewModel MVVM (comme au TP4) dont la source de
- * données n'est plus en mémoire mais un {@link SiteDao} (TP5), <b>injecté par Guice</b>. La liste
- * observable est chargée depuis la base ; ajouter ou supprimer un site écrit en base ET met à jour
- * la liste, donc la {@code TableView} se rafraîchit toute seule.
- *
- * <p>Le ViewModel reste testable sans interface : on lui passe un {@link SiteDao} branché sur une
- * base de test (voir {@code SitesViewModelTest}).
- */
+/** ViewModel du capstone : la liste des sites VigieChiro, persistée en base. */
 public class SitesViewModel {
 
   private final SiteDao dao;
@@ -30,11 +21,12 @@ public class SitesViewModel {
   public SitesViewModel(SiteDao dao) {
     this.dao = dao;
 
-    // TODO exercice 7 : charger les sites depuis la base et lier le résumé.
-    //
-    // - remplir `sites` avec tous les sites du DAO (dao.findAll), via setAll ;
-    // - lier `resume` à une chaîne dérivée du nombre de sites (Bindings.size(sites)),
-    //   au format attendu par le test (cf. SitesViewModelTest).
+    // Geste 1 : Remplir la liste depuis la base SQLite au démarrage
+    sites.setAll(dao.findAll());
+
+    // Geste 1 suite : Lier le résumé au nombre de sites au format attendu par le
+    // test
+    resume.bind(Bindings.concat(Bindings.size(sites), " site(s) suivi(s)"));
   }
 
   public ObservableList<Site> sitesProperty() {
@@ -47,11 +39,16 @@ public class SitesViewModel {
 
   /** Persiste un nouveau site puis l'ajoute à la liste observable. */
   public void ajouterCommand(Site site) {
-    // TODO exercice 7 : insérer le site en base (dao.insert) puis l'ajouter à `sites`.
+    // Geste 2 : Insertion en base de données, puis mise à jour de la liste de
+    // l'écran
+    dao.insert(site);
+    sites.add(site);
   }
 
   /** Supprime un site de la base puis de la liste observable. */
   public void supprimerCommand(Site site) {
-    // TODO exercice 7 : supprimer le site en base (dao.delete) puis le retirer de `sites`.
+    // Geste 3 : Suppression en base de données, puis retrait de la liste de l'écran
+    dao.delete(site.numeroCarre());
+    sites.remove(site);
   }
 }
